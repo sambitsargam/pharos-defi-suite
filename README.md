@@ -19,29 +19,9 @@ an IDO, or stands up a DAO — no SDK, no glue code.
 | **Governance** | ERC20Votes token, Governor + Timelock DAO, m-of-n multisig. |
 | **Oracle** | Admin-set price feed, DEX TWAP oracle. |
 
-## How to use it
-
-### 1. Install & build
-```bash
-curl -L https://foundry.paradigm.xyz | bash && foundryup
-forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.0.2
-forge build
-```
-
-### 2. Set your key & network
-```bash
-export PRIVATE_KEY=0xYOUR_KEY
-export RPC=https://atlantic.dplabs-internal.com   # Atlantic testnet (688689); mainnet: https://rpc.pharos.xyz
-```
-
-### 3. Run it
-Point your agent at [`SKILL.md`](SKILL.md). It reads the **Capability Index**, opens the
-matching [`references/<module>.md`](references/), and runs the exact `cast`/`forge` command.
-You can also run any command directly from the reference files.
-
 ## Examples
 
-**Talk to the agent in plain English:**
+Talk to the agent in plain English:
 
 | You say | The agent does |
 |---------|----------------|
@@ -54,15 +34,9 @@ You can also run any command directly from the reference files.
 | "Airdrop these 5000 addresses" | deploys `MerkleDistributor` |
 | "Set up a DAO with a 2-day timelock" | deploys `GovernanceToken` + `DefiTimelock` + `DefiGovernor` |
 
-**Or run commands directly:**
-```bash
-# Create a token via the factory
-cast send $FACTORY "createToken(string,string,uint256,uint256)" "Gold" "GLD" $(cast to-wei 1000000 ether) 0 \
-  --rpc-url $RPC --private-key $PRIVATE_KEY
+## How to use it
 
-# Deploy the core stack (factory, WPHRS, DEX, oracle) in one shot
-forge script script/DeploySuite.s.sol:DeploySuite --rpc-url $RPC --broadcast --private-key $PRIVATE_KEY
-```
-
-Every operation, with parameters and error notes, is documented in
-[`references/`](references/). Live core deployment on Atlantic is in [DEPLOYMENT.md](DEPLOYMENT.md).
+Point your agent at [`SKILL.md`](SKILL.md) — it contains the setup, the capability index, and
+the exact `cast`/`forge` command for every operation. The agent matches your request to the
+right [`references/<module>.md`](references/) and runs it. Live core deployment on Atlantic is
+in [DEPLOYMENT.md](DEPLOYMENT.md).
