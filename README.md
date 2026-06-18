@@ -1,83 +1,99 @@
 # Pharos DeFi Suite
 
-> A complete, end-to-end **DeFi protocol suite** packaged as a [Pharos Skill Engine](https://github.com/PharosNetwork/pharos-skill-engine)
-> skill. 25 audited-pattern contracts across 8 modules — every major DeFi primitive — that an
-> AI agent can deploy and operate on Pharos through `cast`/`forge`.
+A [Pharos Skill Engine](https://github.com/PharosNetwork/pharos-skill-engine) skill that lets
+an AI agent (or you) deploy and operate a full DeFi stack on Pharos using `cast`/`forge` — 25
+contracts across 8 modules, no SDK required.
 
-Built on **OpenZeppelin v5** + **Foundry**, matching the official Pharos skill format
-(`SKILL.md` frontmatter + capability index, `references/` command templates, `assets/`
-config & script templates).
+## What it can do
 
-## Modules (25 contracts)
+Ask the agent in plain English, or run the commands in `references/<module>.md` yourself.
 
-| Module | Contracts |
-|--------|-----------|
-| **Tokens** | `StandardERC20` (mint/burn/cap/permit), `ERC20Factory`, `WrappedNative` (WPHRS), `Faucet`, `NFTCollection` (ERC721), `MultiToken` (ERC1155) |
-| **DEX / AMM** | `DexFactory`, `DexPair` (x*y=k, 0.30% fee, TWAP accumulators), `DexRouter` (liquidity + multi-hop swaps + native) |
-| **Yield** | `StakingRewards` (Synthetix), `MasterChef` (multi-pool farm), `YieldVault` (ERC4626), `NFTStaking` |
-| **Lending** | `LendingPool` (Compound-style money market), `Stablecoin` + `CDPEngine` (MakerDAO-style CDP), `FlashLender` (ERC-3156) |
-| **Payments** | `TokenVesting` (cliff+linear), `PaymentStream` (Sablier-style), `MerkleDistributor` (airdrop), `RevenueSplitter`, `OTCSwap` |
-| **Fundraising** | `TokenSale` (IDO), `Crowdfunding` (goal+refund), `LiquidityLocker` |
-| **Governance** | `GovernanceToken` (ERC20Votes), `DefiGovernor` (Governor), `DefiTimelock`, `MultiSigWallet` |
-| **Oracle** | `SimpleOracle`, `DexTWAPOracle` |
+**Tokens** — create an ERC20 (mintable/burnable/capped), deploy via a factory, wrap/unwrap
+native PHRS (WPHRS), run a testnet faucet, deploy an ERC721 NFT collection or an ERC1155.
 
-## How it works as a Skill
+**DEX / AMM** — launch a Uniswap-V2 DEX, create pairs, add/remove liquidity (token or native),
+swap with multi-hop routing, read price quotes.
 
-An AI agent reads [`SKILL.md`](SKILL.md) → matches the user's intent in the **Capability
-Index** → opens the matching `references/<module>.md` → runs the exact `cast`/`forge` command.
-No bespoke SDK — just Foundry CLI + this knowledge package.
+**Yield** — single-asset staking with rewards, a multi-pool MasterChef farm, an ERC4626 vault,
+and NFT staking.
 
-## Quickstart
+**Lending** — supply/borrow money market with collateral factors and liquidation, a
+MakerDAO-style stablecoin minted against collateral (CDP), and ERC-3156 flash loans.
 
+**Payments** — token vesting (cliff + linear), per-second payment streams, Merkle airdrops,
+revenue splitting, and trustless OTC swaps.
+
+**Fundraising** — fixed-price token sale / IDO, all-or-nothing crowdfunding with refunds, and
+a liquidity locker.
+
+**Governance** — an ERC20Votes token, a Governor + Timelock DAO, and an m-of-n multisig.
+
+**Oracle** — an admin-set price feed and a DEX TWAP oracle.
+
+## How to use it
+
+### 1. Install & build
 ```bash
-# 1) Foundry
 curl -L https://foundry.paradigm.xyz | bash && foundryup
-# 2) deps (OpenZeppelin pinned to a Paris-compatible release)
 forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.0.2
-# 3) build & test
 forge build
-forge test
 ```
 
-### Deploy the core stack to Pharos
+### 2. Set your key & network
 ```bash
 export PRIVATE_KEY=0xYOUR_KEY
-forge script script/DeploySuite.s.sol:DeploySuite \
-  --rpc-url https://atlantic.dplabs-internal.com --broadcast --private-key $PRIVATE_KEY
+export RPC=https://atlantic.dplabs-internal.com   # Atlantic testnet (688689); mainnet: https://rpc.pharos.xyz
 ```
-This deploys `ERC20Factory`, `WrappedNative`, `DexFactory`, `DexRouter`, and `SimpleOracle`.
-Deploy individual modules with the `forge create` commands in each `references/*.md`.
+
+### 3. Use it as a skill
+Point your agent at `SKILL.md`. The agent reads the **Capability Index**, matches your request
+to the right `references/<module>.md`, and runs the exact `cast`/`forge` command. Example:
+
+> "Create a token called Gold (GLD), deploy a DEX, and add 1000 GLD / 1 PHRS of liquidity."
+
+The agent deploys `StandardERC20`, the `DexFactory`/`DexRouter`, then calls `addLiquidityNative`.
+
+### 4. …or run commands directly
+Every operation has a copy-paste template. Example — create a token via the factory:
+```bash
+cast send $FACTORY "createToken(string,string,uint256,uint256)" "Gold" "GLD" $(cast to-wei 1000000 ether) 0 \
+  --rpc-url $RPC --private-key $PRIVATE_KEY
+```
+Example — deploy the core stack in one shot:
+```bash
+forge script script/DeploySuite.s.sol:DeploySuite --rpc-url $RPC --broadcast --private-key $PRIVATE_KEY
+```
+
+## Where each command lives
+
+| Module | Contracts | Commands |
+|--------|-----------|----------|
+| Tokens | StandardERC20, ERC20Factory, WrappedNative, Faucet, NFTCollection, MultiToken | `references/tokens.md` |
+| DEX | DexFactory, DexPair, DexRouter | `references/dex.md` |
+| Yield | StakingRewards, MasterChef, YieldVault, NFTStaking | `references/yield.md` |
+| Lending | LendingPool, Stablecoin, CDPEngine, FlashLender | `references/lending.md` |
+| Payments | TokenVesting, PaymentStream, MerkleDistributor, RevenueSplitter, OTCSwap | `references/payments.md` |
+| Fundraising | TokenSale, Crowdfunding, LiquidityLocker | `references/fundraising.md` |
+| Governance | GovernanceToken, DefiGovernor, DefiTimelock, MultiSigWallet | `references/governance.md` |
+| Oracle | SimpleOracle, DexTWAPOracle | `references/oracle.md` |
+| Deploy/verify/read/write | — | `references/contract.md` |
 
 ## Networks
 
-| Network | chainId | RPC | Native |
-|---------|---------|-----|--------|
-| Atlantic testnet (default) | 688689 | `https://atlantic.dplabs-internal.com` | PHRS |
-| Mainnet | 1672 | `https://rpc.pharos.xyz` | PROS |
+| Network | chainId | RPC |
+|---------|---------|-----|
+| Atlantic testnet (default) | 688689 | `https://atlantic.dplabs-internal.com` |
+| Mainnet | 1672 | `https://rpc.pharos.xyz` |
 
-(See `assets/networks.json`.)
+A live core deployment (factory, WPHRS, DEX, oracle) on Atlantic is listed in
+[DEPLOYMENT.md](DEPLOYMENT.md).
 
-## Testing
+## Notes
 
-`test/DefiSuite.t.sol` runs end-to-end integration tests across the core modules:
-
-```
-[PASS] test_DexAddLiquidityAndSwap   — add liquidity + constant-product swap
-[PASS] test_StakingRewardsAccrue     — Synthetix reward accrual over time
-[PASS] test_LendingSupplyBorrow      — supply collateral, borrow to the collateral-factor limit
-[PASS] test_CDPMintAgainstCollateral — mint stablecoin within the 150% ratio, revert past it
-```
-
-## Security notes
-
-- Built on **OpenZeppelin v5** (ReentrancyGuard, SafeERC20, Ownable, ERC4626, Governor,
-  TimelockController, ERC20Votes, MerkleProof, ERC-3156 interfaces).
-- Reentrancy guards on all value-moving flows; checks-effects-interactions throughout.
-- **Assumptions** (documented per module): lending/CDP assume 18-decimal tokens and 1e18 USD
-  oracle prices; `SimpleOracle` is admin-set — use `DexTWAPOracle` or a robust feed for
-  production collateral pricing.
-- Reference implementations for a hackathon/testnet. Get a professional audit before mainnet
-  use with real value.
+- Built on OpenZeppelin v5; Solidity 0.8.24; `via_ir` enabled in `foundry.toml`.
+- Lending/CDP assume 18-decimal tokens and 1e18 USD oracle prices. Use `DexTWAPOracle` (not a
+  spot read) for production collateral pricing.
+- Reference implementations for testnet/hackathon use — audit before mainnet value.
 
 ## License
 MIT
