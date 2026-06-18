@@ -27,22 +27,22 @@ matching `references/<module>.md` file.
 
 ## Prerequisites
 
-1. **Install Foundry** (MANDATORY before any action):
-   - Run `which cast`. If not found, install:
-     ```bash
-     curl -L https://foundry.paradigm.xyz | bash
-     source ~/.zshenv && foundryup
-     cast --version
-     ```
-   - If installation fails, inform the user and STOP.
-2. **Build the contracts** (this repo uses OpenZeppelin + `via_ir`):
-   ```bash
-   forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.0.2
-   forge build
-   ```
-3. **Configure a private key** for write operations: pass `--private-key $PRIVATE_KEY`
-   explicitly on every `cast send` / `forge` command (Foundry does NOT read env vars
-   automatically). Never log or commit the key.
+### 1. Install & build
+Foundry is MANDATORY. Check `which cast`; if missing, install, then build (this repo uses
+OpenZeppelin + `via_ir`). If installation fails, inform the user and STOP.
+```bash
+curl -L https://foundry.paradigm.xyz | bash && foundryup
+forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.0.2
+forge build
+```
+
+### 2. Set your key & network
+```bash
+export PRIVATE_KEY=0xYOUR_KEY
+export RPC=https://atlantic.dplabs-internal.com   # Atlantic testnet (688689); mainnet: https://rpc.pharos.xyz
+```
+Foundry does NOT read env vars automatically — pass `--private-key $PRIVATE_KEY` and
+`--rpc-url $RPC` explicitly on every `cast`/`forge` command. Never log or commit the key.
 
 ## Network Configuration
 
